@@ -1,0 +1,47 @@
+# Compiled Object files, Static and Dynamic libs (Shared Objects)
+*.o
+*.a
+*.so
+
+# IDE
+.project
+.settings
+.idea
+
+# Folders
+_obj
+_test
+_dev
+logs
+log
+bin
+pkg
+cache
+run
+eev
+vendor
+data
+/etc/xsd/
+/etc/etc/
+
+# Architecture specific extensions/prefixes
+*.[568vq]
+[568vq].out
+
+*.cgo1.go
+*.cgo2.c
+_cgo_defun.c
+_cgo_gotypes.go
+_cgo_export.*
+_testmain.go
+
+*.exe
+*.test
+*.prof
+
+# Configs and etc...
+/.env
+/etc/config.yml
+
+# Local
+docker-compose.local.yml
