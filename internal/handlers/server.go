@@ -14,8 +14,9 @@ import (
 )
 
 type Handler struct {
-	userService *service.UserService
-	testService *service.TestService
+	userService   *service.UserService
+	testService   *service.TestService
+	resultService *service.ResultService
 }
 
 func NewHandler(
@@ -29,6 +30,10 @@ func NewHandler(
 			repository.NewTests(pg),
 			usersRepo,
 			s3,
+		),
+		resultService: service.NewResultService(
+			repository.NewResults(pg),
+			usersRepo,
 		),
 	}
 }
@@ -53,6 +58,27 @@ func (h *Handler) Routing(cfg *config.Config) *chi.Mux {
 		r.Options("/", h.getTest)
 		r.Get("/", h.getTest)
 	})
+
+	router.Options("/set_result", h.setResult)
+	router.Post("/set_result", h.setResult)
+
+	router.Route("/get_all_tests/{number}", func(r chi.Router) {
+		r.Options("/", h.getAllTests)
+		r.Get("/", h.getAllTests)
+	})
+
+	router.Options("/count_all_public_tests", h.countAllPublicTests)
+	router.Get("/count_all_public_tests", h.countAllPublicTests)
+
+	router.Options("/my_profile", h.getProfile)
+	router.Get("/my_profile", h.getProfile)
+
+	router.Options("/my_results", h.getMyResults)
+	router.Get("/my_results", h.getMyResults)
+
+	router.Options("/my_tests_results", h.getMyTestsResults)
+	router.Get("/my_tests_results", h.getMyTestsResults)
+
 	return router
 }
 

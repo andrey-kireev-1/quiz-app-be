@@ -100,3 +100,38 @@ func (h *Handler) register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(tokens)
 }
+
+func (h *Handler) getProfile(w http.ResponseWriter, r *http.Request) {
+	allowCors(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Get refresh token from header
+	accessToken := r.Header.Get("Authorization")
+	if accessToken == "" {
+		http.Error(w, "No refresh token provided", http.StatusUnauthorized)
+		return
+	}
+	// Remove "Bearer " prefix if present
+	if len(accessToken) > 7 && accessToken[:7] == "Bearer " {
+		accessToken = accessToken[7:]
+	}
+
+	// Get user profile from service
+	profile, err := h.userService.GetProfile(accessToken)
+	if err != nil {
+		setError(w, err, "Failed to get profile: ")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(profile)
+}

@@ -78,3 +78,39 @@ func ValidateRefreshToken(tokenString string) (uuid.UUID, error) {
 
 	return uuid.Nil, errors.New("invalid token")
 }
+
+func ValidateAccessToken(tokenString string) (uuid.UUID, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return uuid.Nil, err
+	}
+
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		// Проверяем тип токена
+		if claims["type"] != "access" {
+			return uuid.Nil, errors.New("invalid token type")
+		}
+
+		// Получаем ID пользователя как строку
+		userIDStr, ok := claims["user_id"].(string)
+		if !ok {
+			return uuid.Nil, errors.New("invalid user_id format")
+		}
+
+		// Преобразуем строку в uuid.UUID
+		userID, err := uuid.Parse(userIDStr)
+		if err != nil {
+			return uuid.Nil, errors.New("invalid user_id")
+		}
+
+		return userID, nil
+	}
+
+	return uuid.Nil, errors.New("invalid token")
+}

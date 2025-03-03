@@ -60,3 +60,52 @@ func (h *Handler) getTest(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(resp)
 }
+
+func (h *Handler) getAllTests(w http.ResponseWriter, r *http.Request) {
+	allowCors(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	paginationNum := chi.URLParam(r, "number")
+	resp, err := h.testService.GetAllTests(paginationNum)
+	if err != nil {
+		setError(w, err, "Failed to get test: ")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (h *Handler) countAllPublicTests(w http.ResponseWriter, r *http.Request) {
+	allowCors(w)
+
+	if r.Method == http.MethodOptions {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	resp, err := h.testService.CountAllPublicTests()
+	if err != nil {
+		setError(w, err, "Failed to get test: ")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
+}

@@ -108,3 +108,20 @@ func (s *UserService) RefreshToken(refreshReq modelhttp.RefreshRequest) (modelht
 	}
 	return tokens, nil
 }
+
+func (s *UserService) GetProfile(accessToken string) (modelhttp.ProfileResponse, error) {
+	userID, err := ValidateAccessToken(accessToken)
+	if err != nil {
+		return modelhttp.ProfileResponse{}, err
+	}
+
+	user, err := s.repo.GetUserProfile(userID)
+	if err != nil {
+		return modelhttp.ProfileResponse{}, err
+	}
+
+	return modelhttp.ProfileResponse{
+		Name:  user.Name,
+		Email: user.Email,
+	}, nil
+}

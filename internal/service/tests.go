@@ -7,6 +7,7 @@ import (
 	modelhttp "quiz-app-be/internal/model/modelHttp"
 	"quiz-app-be/internal/repository"
 	"quiz-app-be/internal/setup/aws"
+	"strconv"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -30,6 +31,8 @@ func NewTestService(
 		s3:        s3,
 	}
 }
+
+const testsLimit = 5
 
 func (s *TestService) CreateTest(req modelhttp.CreateTestRequest) error {
 	userID, err := ValidateRefreshToken(req.RefreshToken)
@@ -106,4 +109,41 @@ func (s *TestService) GetTest(testID string) (modelhttp.GetTestResponse, error) 
 		CreatedAt:   test.CreatedAt.String(),
 	}, nil
 
+}
+
+func (s *TestService) GetAllTests(paginationNumStr string) ([]modelhttp.GetTestResponse, error) {
+	paginationNum, err := strconv.Atoi(paginationNumStr)
+	if err != nil {
+		return nil, err
+	}
+	if paginationNum < 1 {
+		paginationNum = 1
+	}
+	limit := paginationNum * testsLimit
+	offset := limit - testsLimit
+	limit = limit - offset
+	tests, err := s.repo.GetAllTests(limit, offset)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp []modelhttp.GetTestResponse
+	for _, test := range tests {
+		resp = append(resp, modelhttp.GetTestResponse{
+			Id:          test.ID.String(),
+			Title:       test.Name,
+			Description: *test.Description,
+			ImageURL:    *test.ImageURL,
+			IsStrict:    test.IsStrict,
+			IsPrivate:   test.IsPrivate,
+			Questions:   test.Data,
+			AuthorName:  test.AuthorID.String(),
+			CreatedAt:   test.CreatedAt.String(),
+		})
+	}
+	return resp, nil
+}
+
+func (s *TestService) CountAllPublicTests() (int, error) {
+	return s.repo.CountAllPublicTests()
 }
