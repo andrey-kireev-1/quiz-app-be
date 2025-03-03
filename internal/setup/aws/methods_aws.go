@@ -42,14 +42,13 @@ func (a *AwsClient) Upload(src []byte, key, contentType string) error {
 
 func (a *AwsClient) GetDownloadUrlByName(key string) (string, error) {
 	presignClient := s3.NewPresignClient(a.c)
-	expiration := time.Now().Add(time.Hour * hoursInWeek)
 	objRqs, err := presignClient.PresignGetObject(
 		context.Background(),
 		&s3.GetObjectInput{
-			Bucket:          aws.String(a.Bucket),
-			Key:             aws.String(key),
-			ResponseExpires: &expiration,
+			Bucket: aws.String(a.Bucket),
+			Key:    aws.String(key),
 		},
+		s3.WithPresignExpires(time.Hour*hoursInWeek),
 	)
 	return objRqs.URL, err
 }

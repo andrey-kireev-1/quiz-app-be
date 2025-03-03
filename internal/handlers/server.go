@@ -4,19 +4,32 @@ import (
 	"net/http"
 	"quiz-app-be/internal/config"
 	"quiz-app-be/internal/model"
+	"quiz-app-be/internal/repository"
 	"quiz-app-be/internal/service"
+	"quiz-app-be/internal/setup/aws"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/jsonp"
+	"github.com/go-pg/pg/v10"
 )
 
 type Handler struct {
 	userService *service.UserService
+	testService *service.TestService
 }
 
-func NewHandler(userService *service.UserService) *Handler {
+func NewHandler(
+	pg *pg.DB,
+	s3 *aws.AwsClient,
+) *Handler {
+	usersRepo := repository.NewUsers(pg)
 	return &Handler{
-		userService: userService,
+		userService: service.NewUserService(usersRepo),
+		testService: service.NewTestService(
+			repository.NewTests(pg),
+			usersRepo,
+			s3,
+		),
 	}
 }
 
@@ -26,12 +39,20 @@ func (h *Handler) Routing(cfg *config.Config) *chi.Mux {
 
 	router.Options("/login", h.login)
 	router.Post("/login", h.login)
+
 	router.Options("/refresh", h.refresh)
 	router.Post("/refresh", h.refresh)
+
 	router.Options("/register", h.register)
 	router.Post("/register", h.register)
+
+	router.Options("/create_test", h.createTest)
 	router.Post("/create_test", h.createTest)
 
+	router.Route("/test/{testID}", func(r chi.Router) {
+		r.Options("/", h.getTest)
+		r.Get("/", h.getTest)
+	})
 	return router
 }
 
@@ -58,5 +79,4 @@ func setError(w http.ResponseWriter, err error, msg string) {
 	default:
 		http.Error(w, msg+err.Error(), http.StatusInternalServerError)
 	}
-	return
 }

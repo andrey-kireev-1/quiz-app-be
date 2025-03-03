@@ -10,6 +10,7 @@ func allowCors(w http.ResponseWriter) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS,PUT,DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, Accept, credentials")
+	w.Header().Set("Access-Control-Allow-Credentials", "true")
 }
 
 func (h *Handler) login(w http.ResponseWriter, r *http.Request) {

@@ -13,7 +13,10 @@ CREATE TABLE IF NOT EXISTS tests(
     id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     name                VARCHAR(255) NOT NULL,
     description         TEXT,
-    data                TEXT,
+    data                TEXT NOT NULL,
+    image_url           TEXT,
+    is_strict           BOOLEAN DEFAULT FALSE,
+    is_private          BOOLEAN DEFAULT FALSE,
     author_id           uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     created_at          TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at          TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP

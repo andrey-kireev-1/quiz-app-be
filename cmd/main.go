@@ -6,7 +6,6 @@ import (
 	"os/signal"
 	"quiz-app-be/internal/config"
 	"quiz-app-be/internal/handlers"
-	"quiz-app-be/internal/repository"
 	"quiz-app-be/internal/service"
 	"quiz-app-be/internal/setup/aws"
 	"quiz-app-be/internal/setup/db"
@@ -36,7 +35,7 @@ func main() {
 	}
 	service.SetSecretKey(cfg.SecretKey)
 	logger.Info("Config initialized")
-	_, err = aws.Init(cfg.Aws)
+	s3, err := aws.Init(cfg.Aws)
 	if err != nil {
 		logger.Sugar().Fatalf("failed to connect s3: %w", err)
 		return
@@ -47,9 +46,9 @@ func main() {
 		logger.Sugar().Fatalf("failed to connect database: %w", err)
 		return
 	}
-	userService := service.NewUserService(repository.NewUsers(pg))
 	_, err = httpServer.Init(cfg.HTTPServer, cfg, handlers.NewHandler(
-		userService,
+		pg,
+		s3,
 	).Routing)
 	if err != nil {
 		logger.Sugar().Fatalf("init project httpServer error: %w", err)
