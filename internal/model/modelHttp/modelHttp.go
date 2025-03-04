@@ -94,3 +94,15 @@ type TestWithResultsResponse struct {
 type MyTestsResultsResponse struct {
 	Results []TestWithResultsResponse `json:"results"`
 }
+
+type MyTestsResponse struct {
+	Tests []GetTestResponse `json:"tests"`
+}
+
+type TestFilters struct {
+	TestName    *string    `json:"testName,omitempty"`
+	AuthorName  *string    `json:"authorName,omitempty"`
+	CreatedFrom *time.Time `json:"createdFrom,omitempty"`
+	CreatedTo   *time.Time `json:"createdTo,omitempty"`
+	IsStrict    *bool      `json:"isStrict,omitempty"`
+}

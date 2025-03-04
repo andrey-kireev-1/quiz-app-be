@@ -15,9 +15,9 @@ func NewUsers(db *pg.DB) *Users {
 	return &Users{db: db}
 }
 
-func (s *Users) CreateUser(user modeldb.User) error {
+func (s *Users) CreateUser(user modeldb.User) (modeldb.User, error) {
 	_, err := s.db.Model(&user).Insert()
-	return err
+	return user, err
 }
 
 func (s *Users) GetUserByEmail(email string) (modeldb.User, error) {

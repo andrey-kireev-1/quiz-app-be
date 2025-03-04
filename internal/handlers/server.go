@@ -62,9 +62,9 @@ func (h *Handler) Routing(cfg *config.Config) *chi.Mux {
 	router.Options("/set_result", h.setResult)
 	router.Post("/set_result", h.setResult)
 
-	router.Route("/get_all_tests/{number}", func(r chi.Router) {
-		r.Options("/", h.getAllTests)
-		r.Get("/", h.getAllTests)
+	router.Route("/get_home_tests/{number}", func(r chi.Router) {
+		r.Options("/", h.getHomeTests)
+		r.Get("/", h.getHomeTests)
 	})
 
 	router.Options("/count_all_public_tests", h.countAllPublicTests)
@@ -78,6 +78,12 @@ func (h *Handler) Routing(cfg *config.Config) *chi.Mux {
 
 	router.Options("/my_tests_results", h.getMyTestsResults)
 	router.Get("/my_tests_results", h.getMyTestsResults)
+
+	router.Options("/my_tests", h.getMyTests)
+	router.Get("/my_tests", h.getMyTests)
+
+	router.Options("/get_all_tests", h.getAllTests)
+	router.Get("/get_all_tests", h.getAllTests)
 
 	return router
 }

@@ -9,6 +9,7 @@ import (
 	"quiz-app-be/internal/setup/aws"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/pkg/errors"
 )
@@ -98,20 +99,27 @@ func (s *TestService) GetTest(testID string) (modelhttp.GetTestResponse, error) 
 		return modelhttp.GetTestResponse{}, err
 	}
 
+	var description, imageURL string
+	if test.Description != nil {
+		description = *test.Description
+	}
+	if test.ImageURL != nil {
+		imageURL = *test.ImageURL
+	}
 	return modelhttp.GetTestResponse{
 		Title:       test.Name,
-		Description: *test.Description,
-		ImageURL:    *test.ImageURL,
+		Description: description,
+		ImageURL:    imageURL,
 		IsStrict:    test.IsStrict,
 		IsPrivate:   test.IsPrivate,
 		Questions:   test.Data,
-		AuthorName:  test.AuthorID.String(),
+		AuthorName:  test.AuthorName,
 		CreatedAt:   test.CreatedAt.String(),
 	}, nil
 
 }
 
-func (s *TestService) GetAllTests(paginationNumStr string) ([]modelhttp.GetTestResponse, error) {
+func (s *TestService) GetHomeTests(paginationNumStr string) ([]modelhttp.GetTestResponse, error) {
 	paginationNum, err := strconv.Atoi(paginationNumStr)
 	if err != nil {
 		return nil, err
@@ -122,22 +130,29 @@ func (s *TestService) GetAllTests(paginationNumStr string) ([]modelhttp.GetTestR
 	limit := paginationNum * testsLimit
 	offset := limit - testsLimit
 	limit = limit - offset
-	tests, err := s.repo.GetAllTests(limit, offset)
+	tests, err := s.repo.GetHomeTests(limit, offset)
 	if err != nil {
 		return nil, err
 	}
 
 	var resp []modelhttp.GetTestResponse
 	for _, test := range tests {
+		var description, imageURL string
+		if test.Description != nil {
+			description = *test.Description
+		}
+		if test.ImageURL != nil {
+			imageURL = *test.ImageURL
+		}
 		resp = append(resp, modelhttp.GetTestResponse{
 			Id:          test.ID.String(),
 			Title:       test.Name,
-			Description: *test.Description,
-			ImageURL:    *test.ImageURL,
+			Description: description,
+			ImageURL:    imageURL,
 			IsStrict:    test.IsStrict,
 			IsPrivate:   test.IsPrivate,
 			Questions:   test.Data,
-			AuthorName:  test.AuthorID.String(),
+			AuthorName:  test.AuthorName,
 			CreatedAt:   test.CreatedAt.String(),
 		})
 	}
@@ -146,4 +161,76 @@ func (s *TestService) GetAllTests(paginationNumStr string) ([]modelhttp.GetTestR
 
 func (s *TestService) CountAllPublicTests() (int, error) {
 	return s.repo.CountAllPublicTests()
+}
+
+func (s *TestService) GetUserTests(accessToken string) (modelhttp.MyTestsResponse, error) {
+	authorID, err := ValidateAccessToken(accessToken)
+	if err != nil {
+		return modelhttp.MyTestsResponse{}, err
+	}
+
+	tests, err := s.repo.GetUserTests(authorID)
+	if err != nil {
+		return modelhttp.MyTestsResponse{}, err
+	}
+
+	response := modelhttp.MyTestsResponse{
+		Tests: make([]modelhttp.GetTestResponse, len(tests)),
+	}
+
+	for i, test := range tests {
+		var description, imageURL string
+		if test.Description != nil {
+			description = *test.Description
+		}
+		if test.ImageURL != nil {
+			imageURL = *test.ImageURL
+		}
+		response.Tests[i] = modelhttp.GetTestResponse{
+			Id:          test.ID.String(),
+			Title:       test.Name,
+			Description: description,
+			ImageURL:    imageURL,
+			IsStrict:    test.IsStrict,
+			IsPrivate:   test.IsPrivate,
+			Questions:   test.Data,
+			CreatedAt:   test.CreatedAt.Format(time.RFC3339),
+		}
+	}
+
+	return response, nil
+}
+
+func (s *TestService) GetFilteredTests(filters modelhttp.TestFilters) (modelhttp.GetAllTestsResponse, error) {
+	tests, err := s.repo.GetFilteredTests(filters)
+	if err != nil {
+		return modelhttp.GetAllTestsResponse{}, err
+	}
+
+	response := modelhttp.GetAllTestsResponse{
+		Tests: make([]modelhttp.GetTestResponse, len(tests)),
+	}
+
+	for i, test := range tests {
+		var description, imageURL string
+		if test.Description != nil {
+			description = *test.Description
+		}
+		if test.ImageURL != nil {
+			imageURL = *test.ImageURL
+		}
+		response.Tests[i] = modelhttp.GetTestResponse{
+			Id:          test.ID.String(),
+			Title:       test.Name,
+			Description: description,
+			ImageURL:    imageURL,
+			IsStrict:    test.IsStrict,
+			IsPrivate:   test.IsPrivate,
+			Questions:   test.Data,
+			AuthorName:  test.AuthorName,
+			CreatedAt:   test.CreatedAt.Format(time.RFC3339),
+		}
+	}
+
+	return response, nil
 }

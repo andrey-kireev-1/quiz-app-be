@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS test_results(
     test_id             uuid NOT NULL REFERENCES tests(id) ON DELETE CASCADE,
     user_id             uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     result              TEXT NOT NULL,
-    score               INTEGER NOT NULL,
+    score               INTEGER,
     created_at          TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 

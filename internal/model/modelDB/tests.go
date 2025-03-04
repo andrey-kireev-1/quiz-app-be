@@ -20,4 +20,5 @@ type Test struct {
 	CreatedAt     time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt     time.Time `json:"updated_at" db:"updated_at"`
 	AttemptsCount int       `json:"attempts_count" pg:"attempts_count"`
+	AuthorName    string    `json:"author_name" pg:"author_name"`
 }

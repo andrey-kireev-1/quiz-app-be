@@ -25,7 +25,9 @@ var resultColumns = []string{
 }
 
 func (r *Results) SetResult(result modeldb.Result) error {
-	_, err := r.db.Model(&result).Insert()
+	_, err := r.db.Model(&result).
+		Column(resultColumns...).
+		Insert()
 	return err
 }
 

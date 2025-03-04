@@ -7,6 +7,8 @@ import (
 	modelhttp "quiz-app-be/internal/model/modelHttp"
 	"quiz-app-be/internal/repository"
 	"strings"
+
+	"github.com/google/uuid"
 )
 
 type UserService struct {
@@ -25,15 +27,16 @@ func (s *UserService) Register(registerReq modelhttp.RegisterRequest) (modelhttp
 	}
 
 	// Check if user already exists
-	_, err := s.repo.GetUserByEmail(registerReq.Email)
+	foundUser, err := s.repo.GetUserByEmail(registerReq.Email)
 	if err != nil && strings.Contains(err.Error(), "no rows in result set") {
 		err = nil
 	}
-	if err != nil && strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
-		return modelhttp.TokenResponse{}, errors.New(model.ErrUserAlreadyExists)
-	}
 	if err != nil {
 		return modelhttp.TokenResponse{}, err
+	}
+
+	if foundUser.ID != uuid.Nil {
+		return modelhttp.TokenResponse{}, errors.New(model.ErrUserAlreadyExists)
 	}
 
 	hashedPassword, err := HashPassword(registerReq.Password)
@@ -45,7 +48,7 @@ func (s *UserService) Register(registerReq modelhttp.RegisterRequest) (modelhttp
 		Email:    registerReq.Email,
 		Password: hashedPassword,
 	}
-	err = s.repo.CreateUser(user)
+	user, err = s.repo.CreateUser(user)
 	if err != nil {
 		return modelhttp.TokenResponse{}, err
 	}
